@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Dual Pro - Estilo Visual Original</title>
+    <title>Calculadora Dual Pro - Ergonomic Edition</title>
     <style>
         :root {
             --bg: #121212;
             --panel: #2d2d2d;
-            --accent: #f2a154; /* Naranja */
-            --blue: #5183b4;   /* Azul */
-            --green: #539d67;  /* Verde */
+            --accent: #f2a154; 
+            --blue: #5183b4;   
+            --green: #539d67;  
             --text: #ffffff;
+            --btn-std: #d1d1d1;
+            --btn-sci: #4a4a4a;
         }
 
         body {
@@ -26,89 +28,76 @@
 
         .calculator {
             background: var(--panel);
-            width: 380px;
-            border-radius: 8px;
+            width: 440px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
         }
-
-        /* --- PANTALLAS (Estilo imagen) --- */
-        .prog-screens {
-            display: none;
-            flex-direction: column;
-        }
-
-        .base-row {
-            display: flex;
-            padding: 12px 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .base-label { font-weight: bold; width: 60px; font-size: 0.9rem; }
-        .base-val { font-family: monospace; font-size: 1.2rem; }
 
         #std-display {
             background: #222;
-            height: 80px;
+            height: 100px;
             display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 20px;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0 25px;
             font-size: 2.5rem;
+            color: white;
+            border-bottom: 2px solid #111;
         }
 
-        /* --- TABS --- */
+        .memory-indicator { font-size: 0.9rem; color: var(--accent); height: 20px; font-weight: bold; }
+
+        .prog-screens { display: none; flex-direction: column; border-bottom: 1px solid #444; }
+        .base-row {
+            display: flex; padding: 6px 15px;
+            justify-content: space-between; align-items: center;
+        }
+        .base-label { font-weight: bold; width: 50px; font-size: 0.75rem; color: #aaa; }
+        .base-val { font-family: 'Courier New', monospace; font-size: 1rem; color: #eee; }
+
         .tabs { display: flex; background: #333; }
         .tab { 
-            flex: 1; padding: 12px; border: none; background: transparent; 
-            color: #888; cursor: pointer; font-weight: bold;
+            flex: 1; padding: 14px; border: none; background: transparent; 
+            color: #888; cursor: pointer; font-weight: bold; font-size: 0.8rem;
         }
         .tab.active { color: var(--accent); background: var(--panel); }
 
-        /* --- GRID CORREGIDA --- */
-        .main-layout {
-            display: flex; /* Usamos flex para separar HEX del bloque estándar */
-            background: #444;
-            gap: 1px;
-        }
+        /* ESTRUCTURA DE LA REJILLA */
+        .main-layout { display: flex; background: #444; gap: 1px; }
 
         .hex-sidebar {
-            display: none; /* Se activa en modo prog */
-            flex-direction: column;
-            width: 70px;
-            gap: 1px;
+            display: none; flex-direction: column;
+            width: 70px; gap: 1px;
         }
 
         .num-pad {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            flex: 1; display: grid;
+            /* 5 columnas: 4 para funciones/números + 1 para operadores principales */
+            grid-template-columns: repeat(4, 1fr) 1.1fr;
             gap: 1px;
         }
 
         button {
-            border: none;
-            background: #d1d1d1;
-            color: #000;
-            padding: 20px 0;
-            font-size: 1.2rem;
-            cursor: pointer;
+            border: none; background: var(--btn-std);
+            color: #000; padding: 18px 5px;
+            font-size: 1.1rem; cursor: pointer;
+            font-weight: 600;
         }
-
-        button:hover { opacity: 0.9; }
+        button:hover { filter: brightness(1.1); }
+        button:active { filter: brightness(0.8); }
         
-        /* Colores de la imagen */
-        .btn-blue { background: var(--blue); color: white; }
+        .btn-op { background: var(--blue); color: white; font-size: 1.4rem; }
         .btn-orange { background: var(--accent); color: white; }
+        .btn-sci { background: var(--btn-sci); color: white; font-size: 0.85rem; }
         .btn-hex { background: #555; color: white; flex: 1; }
-        .double { grid-column: span 2; }
-
-        /* Mostrar modo prog */
+        
         .prog-active .hex-sidebar { display: flex; }
         .prog-active .prog-screens { display: flex; }
 
+        /* Estilo especial para el igual vertical */
+        .btn-equal { grid-row: span 2; background: var(--accent); color: white; }
     </style>
 </head>
 <body>
@@ -116,17 +105,19 @@
 <div class="calculator" id="calc">
     <div class="tabs">
         <button class="tab active" id="t-std" onclick="setMode('std')">ESTÁNDAR</button>
-        <button class="tab" id="t-prog" onclick="setMode('prog')">PROG</button>
+        <button class="tab" id="t-prog" onclick="setMode('prog')">PROGRAMADOR</button>
     </div>
 
     <div class="prog-screens">
-        <div class="base-row" style="background: var(--blue)"><span class="base-label">HEX</span><span id="h-v" class="base-val">0</span></div>
-        <div class="base-row" style="background: var(--green)"><span class="base-label">DEC</span><span id="d-v" class="base-val">0</span></div>
-        <div class="base-row" style="background: var(--blue)"><span class="base-label">OCT</span><span id="o-v" class="base-val">0</span></div>
-        <div class="base-row" style="background: #444"><span class="base-label">BIN</span><span id="b-v" class="base-val" style="font-size:0.9rem">0000 0000</span></div>
+        <div class="base-row" style="background: rgba(81, 131, 180, 0.2)"><span class="base-label">HEX</span><span id="h-v" class="base-val">0</span></div>
+        <div class="base-row" style="background: rgba(83, 157, 103, 0.2)"><span class="base-label">DEC</span><span id="d-v" class="base-val">0</span></div>
+        <div class="base-row" style="background: rgba(0, 0, 0, 0.3)"><span class="base-label">BIN</span><span id="b-v" class="base-val">0000 0000</span></div>
     </div>
 
-    <div id="std-display">0</div>
+    <div id="std-display">
+        <div class="memory-indicator" id="mem-inc"></div>
+        <div id="main-val">0</div>
+    </div>
 
     <div class="main-layout">
         <div class="hex-sidebar">
@@ -139,35 +130,47 @@
         </div>
 
         <div class="num-pad">
+            <button class="btn-sci" onclick="add('Math.sin(')">sin</button>
+            <button class="btn-sci" onclick="add('Math.cos(')">cos</button>
+            <button class="btn-sci" onclick="add('(')">(</button>
+            <button class="btn-sci" onclick="add(')')">)</button>
+            <button class="btn-orange" onclick="clearAll()">AC</button>
+
+            <button class="btn-sci" onclick="add('Math.log(')">ln</button>
+            <button class="btn-sci" onclick="add('Math.log10(')">log</button>
+            <button class="btn-sci" onclick="memOp('MR')">MR</button>
+            <button class="btn-orange" onclick="del()">DEL</button>
+            <button class="btn-op" onclick="add('/')">÷</button>
+
             <button onclick="add('7')">7</button>
             <button onclick="add('8')">8</button>
             <button onclick="add('9')">9</button>
-            <button class="btn-orange" onclick="del()">DEL</button>
+            <button class="btn-sci" onclick="memOp('M+')">M+</button>
+            <button class="btn-op" onclick="add('*')">×</button>
 
             <button onclick="add('4')">4</button>
             <button onclick="add('5')">5</button>
             <button onclick="add('6')">6</button>
-            <button class="btn-orange" onclick="clearAll()">AC</button>
+            <button class="btn-sci" onclick="memOp('M-')">M-</button>
+            <button class="btn-op" onclick="add('-')">−</button>
 
             <button onclick="add('1')">1</button>
             <button onclick="add('2')">2</button>
             <button onclick="add('3')">3</button>
-            <button class="btn-blue" onclick="add('*')">×</button>
+            <button class="btn-sci" onclick="add('Math.PI')">π</button>
+            <button class="btn-op" onclick="add('+')">+</button>
 
-            <button onclick="add('0')">0</button>
+            <button onclick="add('0')" style="grid-column: span 2;">0</button>
             <button onclick="add('.')">.</button>
-            <button class="btn-blue" onclick="add('+')">+</button>
-            <button class="btn-blue" onclick="add('/')">÷</button>
-
-            <button class="btn-blue" onclick="add('-')">−</button>
-            <button class="btn-orange double" onclick="solve()">=</button>
-            <button class="btn-orange">?</button>
+            <button class="btn-sci" onclick="memOp('MC')">MC</button>
+            <button class="btn-equal" onclick="solve()">=</button>
         </div>
     </div>
 </div>
 
 <script>
     let val = "0";
+    let memory = 0;
     let isProg = false;
 
     function setMode(m) {
@@ -179,7 +182,7 @@
     }
 
     function add(v) {
-        if (val === "0" && v !== ".") val = v;
+        if (val === "0" && !v.includes('Math') && v !== '.') val = v;
         else val += v;
         update();
     }
@@ -187,20 +190,38 @@
     function clearAll() { val = "0"; update(); }
     function del() { val = val.length > 1 ? val.slice(0, -1) : "0"; update(); }
 
+    function memOp(op) {
+        let current = parseFloat(eval(val.replace(/×/g, '*').replace(/÷/g, '/'))) || 0;
+        switch(op) {
+            case 'MC': memory = 0; break;
+            case 'MR': val = memory.toString(); break;
+            case 'M+': memory += current; break;
+            case 'M-': memory -= current; break;
+        }
+        document.getElementById('mem-inc').innerText = memory !== 0 ? "MEMORY ACTIVE" : "";
+        update();
+    }
+
     function update() {
-        document.getElementById('std-display').innerText = val;
+        let displayStr = val.replace(/Math\./g, '').replace(/\(/g, '(');
+        document.getElementById('main-val').innerText = displayStr;
+
         if(isProg) {
-            let n = parseInt(val.replace(/[^\dA-F]/g, ''), 10) || 0;
+            let n = parseInt(val.match(/\d+/g)?.pop() || 0, 10);
             document.getElementById('h-v').innerText = n.toString(16).toUpperCase();
             document.getElementById('d-v').innerText = n.toString(10);
-            document.getElementById('o-v').innerText = n.toString(8);
             document.getElementById('b-v').innerText = n.toString(2).padStart(8, '0').replace(/(.{4})/g, '$1 ');
         }
     }
 
     function solve() {
         try {
-            let res = new Function(`return ${val.replace(/×/g, '*').replace(/÷/g, '/')}`)();
+            let openP = (val.match(/\(/g) || []).length;
+            let closeP = (val.match(/\)/g) || []).length;
+            while(openP > closeP) { val += ')'; closeP++; }
+
+            let cleanExp = val.replace(/×/g, '*').replace(/÷/g, '/');
+            let res = eval(cleanExp);
             val = Number(res.toPrecision(10)).toString();
             update();
         } catch {
