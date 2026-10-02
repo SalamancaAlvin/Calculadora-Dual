@@ -21,7 +21,7 @@ threading.Thread(target=run_flask, daemon=True).start()
 # Configuración del bot
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True  # Permite obtener información de miembros
+intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -44,14 +44,45 @@ async def hola(ctx):
 
 @bot.command()
 async def decir(ctx, *, mensaje: str):
-    """Repite el texto escrito despues del comando."""
+    """Repite el texto escrito después del comando."""
     await ctx.send(mensaje)
 
 @bot.command()
 async def avatar(ctx, usuario: discord.Member = None):
-    """Muestra la foto de perfil de un usuario."""
+    """Muestra el avatar del usuario con formato Embed elegante."""
     usuario = usuario or ctx.author
-    await ctx.send(f"Avatar de {usuario.name}: {usuario.display_avatar.url}")
+
+    # Obtener URLs en diferentes formatos
+    png_url = usuario.display_avatar.with_format("png").url
+    jpg_url = usuario.display_avatar.with_format("jpg").url
+    webp_url = usuario.display_avatar.with_format("webp").url
+
+    # Crear el Embed personalizado
+    embed = discord.Embed(
+        title=f"Avatar de {usuario.display_name}",
+        description=f"[PNG]({png_url}) | [JPG]({jpg_url}) | [WEBP]({webp_url})",
+        color=0xD35400
+    )
+
+    # Detectar decoración de avatar
+    decoracion_nombre = "Ninguna"
+    if getattr(usuario, "avatar_decoration", None):
+        decoracion_nombre = usuario.avatar_decoration.name or "Equipada"
+
+    embed.add_field(name="Decoración de avatar", value=decoracion_nombre, inline=False)
+    embed.set_image(url=usuario.display_avatar.url)
+    embed.set_footer(text="Detrás de cada avatar, hay un mundo por descubrir.")
+
+    # Botón tipo enlace
+    view = discord.ui.View()
+    boton = discord.ui.Button(
+        label="Ver en navegador",
+        url=usuario.display_avatar.url,
+        style=discord.ButtonStyle.link
+    )
+    view.add_item(boton)
+
+    await ctx.send(embed=embed, view=view)
 
 @bot.command()
 async def userinfo(ctx, usuario: discord.Member = None):
@@ -86,7 +117,7 @@ async def serverinfo(ctx):
 
 @bot.command(name="8ball")
 async def ocho_ball(ctx, *, pregunta: str):
-    """Responde preguntas con la bola 8 magica."""
+    """Responde preguntas con la bola 8 mágica."""
     respuestas = [
         "En mi opinión, sí.",
         "Es decididamente así.",
@@ -105,7 +136,7 @@ async def ocho_ball(ctx, *, pregunta: str):
 
 @bot.command()
 async def dado(ctx, caras: int = 6):
-    """Lanza un dado del numero de caras especificado (6 por defecto)."""
+    """Lanza un dado del número de caras especificado (6 por defecto)."""
     resultado = random.randint(1, caras)
     await ctx.send(f"Lanzaste un dado de {caras} caras y salió: {resultado}")
 
@@ -117,9 +148,9 @@ async def moneda(ctx):
 
 @bot.command()
 async def elegir(ctx, *opciones):
-    """Elige una opcion al azar. Separa las opciones por espacios."""
+    """Elige una opción al azar separada por espacios."""
     if len(opciones) < 2:
-        await ctx.send("Debes darme al menos 2 opciones separadas por espacios. Ejemplo: !elegir pizza hamburguesa tacos")
+        await ctx.send("Debes darme al menos 2 opciones separadas por espacios.")
         return
     seleccion = random.choice(opciones)
     await ctx.send(f"Opción elegida: {seleccion}")
@@ -168,7 +199,7 @@ async def ban(ctx, usuario: discord.Member, *, razon: str = "Sin razón especifi
     await usuario.ban(reason=razon)
     await ctx.send(f"Usuario {usuario.name} baneado. Razón: {razon}")
 
-# Manejo de errores para permisos de moderación
+# Manejo de errores
 @kick.error
 @ban.error
 @limpiar.error
