@@ -52,19 +52,16 @@ async def avatar(ctx, usuario: discord.Member = None):
     """Muestra el avatar del usuario con formato Embed elegante."""
     usuario = usuario or ctx.author
 
-    # Obtener URLs en diferentes formatos
     png_url = usuario.display_avatar.with_format("png").url
     jpg_url = usuario.display_avatar.with_format("jpg").url
     webp_url = usuario.display_avatar.with_format("webp").url
 
-    # Crear el Embed personalizado
     embed = discord.Embed(
         title=f"Avatar de {usuario.display_name}",
         description=f"[PNG]({png_url}) | [JPG]({jpg_url}) | [WEBP]({webp_url})",
         color=0xD35400
     )
 
-    # Detectar decoración de avatar
     decoracion_nombre = "Ninguna"
     if usuario.avatar_decoration:
         decoracion_nombre = "Equipada"
@@ -73,7 +70,6 @@ async def avatar(ctx, usuario: discord.Member = None):
     embed.set_image(url=usuario.display_avatar.url)
     embed.set_footer(text="Detrás de cada avatar, hay un mundo por descubrir.")
 
-    # Botón tipo enlace
     view = discord.ui.View()
     boton = discord.ui.Button(
         label="Ver en navegador",
@@ -113,6 +109,33 @@ async def serverinfo(ctx):
     )
     await ctx.send(info)
 
+@bot.command()
+async def botinfo(ctx):
+    """Muestra información sobre el bot."""
+    embed = discord.Embed(
+        title="Información del Bot",
+        color=0x3498DB
+    )
+    embed.add_field(name="Servidores", value=f"{len(bot.guilds)}", inline=True)
+    embed.add_field(name="Latencia", value=f"{round(bot.latency * 1000)}ms", inline=True)
+    embed.add_field(name="Librería", value="discord.py", inline=True)
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def reves(ctx, *, texto: str):
+    """Invierte el texto enviado."""
+    await ctx.send(texto[::-1])
+
+@bot.command()
+async def mayus(ctx, *, texto: str):
+    """Convierte el texto a mayúsculas."""
+    await ctx.send(texto.upper())
+
+@bot.command()
+async def minus(ctx, *, texto: str):
+    """Convierte el texto a minúsculas."""
+    await ctx.send(texto.lower())
+
 # --- DIVERSIÓN Y JUEGOS ---
 
 @bot.command(name="8ball")
@@ -136,7 +159,7 @@ async def ocho_ball(ctx, *, pregunta: str):
 
 @bot.command()
 async def dado(ctx, caras: int = 6):
-    """Lanza un dado del número de caras especificado (6 por defecto)."""
+    """Lanza un dado del número de caras especificado."""
     resultado = random.randint(1, caras)
     await ctx.send(f"Lanzaste un dado de {caras} caras y salió: {resultado}")
 
@@ -176,6 +199,43 @@ async def ruleta(ctx):
     else:
         await ctx.send(f"Clic! {ctx.author.mention} se salvó. Siguiente turno.")
 
+@bot.command()
+async def amor(ctx, usuario1: discord.Member, usuario2: discord.Member = None):
+    """Calcula el porcentaje de compatibilidad entre dos usuarios."""
+    if usuario2 is None:
+        usuario2 = ctx.author
+    
+    porcentaje = random.randint(0, 100)
+    await ctx.send(f"Compatibilidad entre {usuario1.display_name} y {usuario2.display_name}: {porcentaje}%")
+
+@bot.command()
+async def ppt(ctx, eleccion: str):
+    """Juega piedra, papel o tijera contra el bot."""
+    eleccion = eleccion.lower()
+    opciones = ["piedra", "papel", "tijera"]
+    
+    if eleccion not in opciones:
+        await ctx.send("Opción inválida. Elige: piedra, papel o tijera.")
+        return
+
+    bot_eleccion = random.choice(opciones)
+    
+    if eleccion == bot_eleccion:
+        resultado = "Empate!"
+    elif (eleccion == "piedra" and bot_eleccion == "tijera") or \
+         (eleccion == "papel" and bot_eleccion == "piedra") or \
+         (eleccion == "tijera" and bot_eleccion == "papel"):
+        resultado = "¡Ganaste!"
+    else:
+        resultado = "¡Perdiste!"
+
+    await ctx.send(f"Tú elegiste {eleccion}, yo elegí {bot_eleccion}. {resultado}")
+
+@bot.command()
+async def abrazar(ctx, usuario: discord.Member):
+    """Envía un abrazo a un miembro del servidor."""
+    await ctx.send(f"{ctx.author.mention} le ha dado un abrazo a {usuario.mention}.")
+
 # --- MODERACIÓN ---
 
 @bot.command()
@@ -199,15 +259,26 @@ async def ban(ctx, usuario: discord.Member, *, razon: str = "Sin razón especifi
     await usuario.ban(reason=razon)
     await ctx.send(f"Usuario {usuario.name} baneado. Razón: {razon}")
 
+@bot.command()
+@commands.has_permissions(manage_channels=True)
+async def slowmode(ctx, segundos: int = 0):
+    """Establece el modo lento (cooldown entre mensajes) en el canal actual."""
+    await ctx.channel.edit(slowmode_delay=segundos)
+    if segundos == 0:
+        await ctx.send("Se ha desactivado el modo lento en este canal.")
+    else:
+        await ctx.send(f"Modo lento establecido a {segundos} segundos.")
+
 # Manejo de errores
 @kick.error
 @ban.error
 @limpiar.error
+@slowmode.error
 async def errores_moderacion(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("No tienes los permisos requeridos para usar este comando.")
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("Falta especificar un argumento obligatorio (usuario o cantidad).")
+        await ctx.send("Falta especificar un argumento obligatorio.")
 
 # Iniciar bot
 token = os.getenv("DISCORD_TOKEN")
