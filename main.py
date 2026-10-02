@@ -66,8 +66,8 @@ async def avatar(ctx, usuario: discord.Member = None):
 
     # Detectar decoración de avatar
     decoracion_nombre = "Ninguna"
-    if getattr(usuario, "avatar_decoration", None):
-        decoracion_nombre = usuario.avatar_decoration.name or "Equipada"
+    if usuario.avatar_decoration:
+        decoracion_nombre = "Equipada"
 
     embed.add_field(name="Decoración de avatar", value=decoracion_nombre, inline=False)
     embed.set_image(url=usuario.display_avatar.url)
